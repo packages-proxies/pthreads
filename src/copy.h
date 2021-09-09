@@ -343,7 +343,7 @@ static inline zend_function* pthreads_copy_user_function(zend_function *function
 	op_array->refcount = emalloc(sizeof(uint32_t));
 	(*op_array->refcount) = 1;
 	/* we never want to share the same runtime cache */
-	op_array->run_time_cache_ptr = NULL;
+	op_array->run_time_cache__ptr = NULL;
 #if PHP_VERSION_ID >= 70300
 	op_array->fn_flags &= ~ZEND_ACC_DONE_PASS_TWO;
 #endif
