@@ -120,7 +120,7 @@ static void prepare_class_statics(pthreads_object_t* thread, zend_class_entry *c
 				&candidate->default_static_members_table[i],
 				&prepared->default_static_members_table[i], 0);
 		}	
-		prepared->static_members_table = prepared->default_static_members_table;
+		prepared->static_members_table__ptr = prepared->default_static_members_table;
 	} else prepared->default_static_members_count = 0;
 } /* }}} */
 
@@ -280,9 +280,9 @@ static void prepare_class_traits(pthreads_object_t* thread, zend_class_entry *ca
 
 	if (candidate->num_traits) {
 		uint trait;
-		prepared->traits = emalloc(sizeof(zend_class_entry*) * candidate->num_traits);
+		prepared->interfaces = emalloc(sizeof(zend_class_entry*) * candidate->num_traits);
 		for (trait=0; trait<candidate->num_traits; trait++)
-			prepared->traits[trait] = pthreads_prepared_entry(thread, candidate->traits[trait]);
+			prepared->interfaces[trait] = pthreads_prepared_entry(thread, candidate->interfaces[trait]);
 		prepared->num_traits = candidate->num_traits;
 
 		if (candidate->trait_aliases) {
@@ -387,7 +387,7 @@ static zend_class_entry* pthreads_copy_entry(pthreads_object_t* thread, zend_cla
 	}
 	prepare_class_property_table(thread, candidate, prepared);
 
-	if (candidate->ce_flags & ZEND_ACC_ANON_CLASS && !(prepared->ce_flags & ZEND_ACC_ANON_BOUND)) {
+	if (candidate->ce_flags & ZEND_ACC_ANON_CLASS /*&& !(prepared->ce_flags & ZEND_ACC_ANON_BOUND)*/) {
 
 		// this first copy will copy all declared functions on the unbound anonymous class
 		prepare_class_function_table(candidate, prepared);
@@ -418,11 +418,11 @@ static inline int pthreads_prepared_entry_function_prepare(zval *bucket, int arg
 
 		/* runtime cache relies on immutable scope, so if scope changed, reallocate runtime cache */
 		/* IT WOULD BE NICE IF THIS WERE DOCUMENTED SOMEWHERE OTHER THAN PHP-SRC */
-		if (!function->op_array.run_time_cache || function->common.scope != scope) {
+		if (!function->op_array.run_time_cache__ptr || function->common.scope != scope) {
 			zend_op_array *op_array = &function->op_array;
-			op_array->run_time_cache = emalloc(op_array->cache_size);
-			memset(op_array->run_time_cache, 0, op_array->cache_size);
-			op_array->fn_flags |= ZEND_ACC_NO_RT_ARENA;
+			op_array->run_time_cache__ptr = emalloc(op_array->cache_size);
+			memset(op_array->run_time_cache__ptr, 0, op_array->cache_size);
+			//op_array->fn_flags |= ZEND_ACC_NO_RT_ARENA;
 		}
 	}
 	return ZEND_HASH_APPLY_KEEP;
